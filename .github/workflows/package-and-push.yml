@@ -8,6 +8,9 @@ on:
     types: [closed]
     branches: [ "master" ]
 
+env:
+  NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+  REPOSITORY_URL:  https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -20,15 +23,12 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 9.0.x
-        source-url: https://nuget.pkg.github.com/ashiryn/index.json
-      env:
-        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        dotnet-version: 9.0.x      
         
-    - name: Build
+    - name: Build and Package project
       run: |
         cd Logging
         dotnet pack -c Release -o out
         
     - name: Push generated package to GitHub registry
-      run: dotnet nuget push ./Logging/out/*.nupkg -k ${NUGET_AUTH_TOKEN} -s https://nuget.pkg.github.com/ashiryn --skip-duplicate --no-symbols true
+      run: dotnet nuget push ./Logging/out/*.nupkg -k ${{ env.NUGET_AUTH_TOKEN }} -s ${{ env.REPOSITORY_URL }} --skip-duplicate --no-symbols true
