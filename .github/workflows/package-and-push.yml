@@ -31,4 +31,4 @@ jobs:
         dotnet pack -c Release -o out
         
     - name: Push generated package to GitHub registry
-      run: dotnet nuget push ./Logging/out/*.nupkg --skip-duplicate --no-symbols
+      run: dotnet nuget push ./Logging/out/*.nupkg -k ${NUGET_AUTH_TOKEN} -s https://nuget.pkg.github.com/ashiryn --skip-duplicate --no-symbols true
