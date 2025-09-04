@@ -1,19 +1,20 @@
 # This workflow will build a .NET project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
-name: Build and Test
+name: NuGet Generation
 
 on:
   push:
     branches: [ "master" ]
   pull_request:
+    types: [closed]
     branches: [ "master" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    name: Build and Test solution
+    
+    name: Update NuGet package
     steps:
     - name: Checkout repository
     - uses: actions/checkout@v4
@@ -22,12 +23,14 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.0.x
-    
-    - name: Restore dependencies
-      run: dotnet restore
-    
+        source-url: https://nuget.pkg.github.com/ashiryn/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        
     - name: Build
-      run: dotnet build --no-restore
-    
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: |
+        cd Logging
+        dotnet pack -c Release -o out
+        
+    - name: Push generated package to GitHub registry
+      run: dotnet nuget push ./Logging/out/*.nupkg --skip-duplicate --no-symbols
